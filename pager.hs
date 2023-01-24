@@ -17,6 +17,7 @@ module Main where
  -}
 import Data.List (intercalate)
 import System.Environment (getArgs)
+import System.IO (hPutStrLn, stderr)
 
 {-
  - Building the list of signatures. A signature is a triple of the form
@@ -27,26 +28,24 @@ import System.Environment (getArgs)
  - through a little bit of playing with numbers in Wolfram Mathematica.
  -}
 signatures :: Int -> Int -> [(Int, [Int], [Int])]
-signatures pageN sigSize = [(sig + 1, map (side1 sig) pages, map (side2 sig) pages) | sig <- [0 .. pageN `div` sigSize - 1]] where
-    size' = sigSize `div` 2
-    pages = [1 .. size']
+signatures pageN sigSize = [(sig + 1, map (side1 sig) pages, map (side2 sig) pages) | sig <- [0 .. pageN `div` sigSize - 1]]
+    where
+        size' = sigSize `div` 2
+        pages = [1 .. size']
 
-    side1, side2 :: Int -> Int -> Int
-    side1 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - size' - 1) - 2) `mod` pageN
-    side2 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - 1) - 3) `mod` pageN + 1
+        side1, side2 :: Int -> Int -> Int
+        side1 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - size' - 1) - 2) `mod` pageN
+        side2 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - 1) - 3) `mod` pageN + 1
 
 {-
  - Output. Self-explanatory.
  -}
 printSignatures :: [(Int, [Int], [Int])] -> IO ()
-printSignatures [(n, s1, s2)] = do
-    putStrLn $ "Signature " ++ show n
-    putStrLn $ "Side 1: " ++ (intercalate ", " $ map show s1)
-    putStrLn $ "Side 2: " ++ (intercalate ", " $ map show s2)
+printSignatures []                 = return ()
 printSignatures ((n, s1, s2):sigs) = do
     putStrLn $ "Signature " ++ show n
-    putStrLn $ "Side 1: " ++ (intercalate ", " $ map show s1)
-    putStrLn $ "Side 2: " ++ (intercalate ", " $ map show s2)
+    putStrLn $ "Side 1: " ++ intercalate ", " (map show s1)
+    putStrLn $ "Side 2: " ++ intercalate ", " (map show s2)
     putStrLn ""
     printSignatures sigs
 
@@ -60,7 +59,7 @@ main :: IO ()
 main = do
     pageN : sigSize : _ <- map (read :: String -> Int) <$> getArgs
     if sigSize `notElem` [12, 16, 20] then
-        putStrLn "Error: Incorrect input data: signature size must be either 12, 16 or 20"
+        hPutStrLn stderr "Error: Incorrect input data: signature size must be either 12, 16 or 20"
     else if pageN `mod` sigSize /= 0 then
-        putStrLn "Error: Incorrect input data: number of pages isn't divisible by signature size"
+        hPutStrLn stderr "Error: Incorrect input data: number of pages isn't divisible by signature size"
     else printSignatures $ signatures pageN sigSize
