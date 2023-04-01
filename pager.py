@@ -30,7 +30,7 @@ def print_signatures(sigs: list[tuple[list[str], list[str]]]) -> None:
     print(f"Total number of signatures is {n}.\n")
 
     for i, (s1, s2) in enumerate(sigs):
-        print(f"Signature {i}:")
+        print(f"Signature {i + 1}:")
         print(f"Side 1: {', '.join(s1)}")
         print(f"Side 2: {', '.join(s2)}\n")
 
