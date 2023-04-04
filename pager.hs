@@ -59,8 +59,8 @@ checkInputs pageN sigSize
 
 -- Output. Self-explanatory.
 printSignatures :: [(Int, [Int], [Int])] -> IO ()
-printSignatures []                 = return ()
-printSignatures ((n, s1, s2):sigs) = do
+printSignatures []                   = return ()
+printSignatures ((n, s1, s2) : sigs) = do
     putStrLn $ "Signature " ++ show n
     putStrLn $ "Side 1: " ++ intercalate ", " (map show s1)
     putStrLn $ "Side 2: " ++ intercalate ", " (map show s2)
