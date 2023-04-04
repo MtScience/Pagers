@@ -11,13 +11,14 @@
 module Main where
 
 {-
- - Imports. The "intercalate" function is used to simplify list output, whereas "getArgs" is self-explanatory. It was
- - possible to not use it and ask the user for the number of pages and signature size after the program is started, but
- - I wanted to implement the same functionality as the Lua version, which requires two arguments.
+ - Imports. The "intercalate" function is used to simplify list output, whereas "getArgs" is self-explanatory. It is
+ - used if the there are CLI arguments supplied, otherwise the user is asked for input. The "die" function is used to report
+ - errors.
  -}
 import Data.List (intercalate)
 import System.Environment (getArgs)
-import System.IO (hPutStrLn, stderr)
+import System.Exit (die)
+import System.IO (hFlush, stdout)
 
 {-
  - Building the list of signatures. A signature is a triple of the form
@@ -38,6 +39,29 @@ signatures pageN sigSize = [(sig + 1, map (side1 sig) pages, map (side2 sig) pag
         side2 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - 1) - 3) `mod` pageN + 1
 
 {-
+ - Ask the user for inputs if they haven't supplied command line arguments.
+ -}
+askForInputs :: IO [Int]
+askForInputs = do
+    putStr "Please enter the number of pages in the book: "
+    hFlush stdout
+    pageN <- read <$> getLine
+    putStr "Please enter the desired number of pages in a signature: "
+    hFlush stdout
+    sigSize <- read <$> getLine
+    putStrLn ""
+    return [pageN, sigSize]
+
+{-
+ - Obviously, checking inputs for correctness.
+ -}
+checkInputs :: Int -> Int -> IO ()
+checkInputs pageN sigSize
+    | sigSize `notElem` [12, 16, 20] = die "Error: Incorrect input data: signature size must be either 12, 16 or 20"
+    | pageN `mod` sigSize /= 0       = die "Error: Incorrect input data: number of pages isn't divisible by signature size"
+    | otherwise                      = return ()
+
+{-
  - Output. Self-explanatory.
  -}
 printSignatures :: [(Int, [Int], [Int])] -> IO ()
@@ -50,16 +74,13 @@ printSignatures ((n, s1, s2):sigs) = do
     printSignatures sigs
 
 {-
- - Main function. It also checks the arguments for correctness. It could be done through, e. g. Either type, but
- - this program is not complicated enough to use such powerful constructs. So it simply checks if the signature size
- - is correct and if the number of pages is divisible by it. If both conditions hold, it calls "printSignatures". Otherwise,
- - it prints the relevant message and exits.
+ - Main function.
  -}
 main :: IO ()
 main = do
-    pageN : sigSize : _ <- map (read :: String -> Int) <$> getArgs
-    if sigSize `notElem` [12, 16, 20] then
-        hPutStrLn stderr "Error: Incorrect input data: signature size must be either 12, 16 or 20"
-    else if pageN `mod` sigSize /= 0 then
-        hPutStrLn stderr "Error: Incorrect input data: number of pages isn't divisible by signature size"
-    else printSignatures $ signatures pageN sigSize
+    args <- getArgs
+    pageN : sigSize : _ <- if length args >= 2
+        then return $ map read args
+        else askForInputs
+    checkInputs pageN sigSize
+    printSignatures $ signatures pageN sigSize
