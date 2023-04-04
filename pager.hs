@@ -38,9 +38,7 @@ signatures pageN sigSize = [(sig + 1, map (side1 sig) pages, map (side2 sig) pag
         side1 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - size' - 1) - 2) `mod` pageN
         side2 sigNo pageNo = (sigSize * sigNo + size' + (-1)^pageNo * (pageNo - 1) - 3) `mod` pageN + 1
 
-{-
- - Ask the user for inputs if they haven't supplied command line arguments.
- -}
+-- Ask the user for inputs if they haven't supplied command line arguments.
 askForInputs :: IO [Int]
 askForInputs = do
     putStr "Please enter the number of pages in the book: "
@@ -52,18 +50,14 @@ askForInputs = do
     putStrLn ""
     return [pageN, sigSize]
 
-{-
- - Obviously, checking inputs for correctness.
- -}
+-- Obviously, checking inputs for correctness.
 checkInputs :: Int -> Int -> IO ()
 checkInputs pageN sigSize
     | sigSize `notElem` [12, 16, 20] = die "Error: Incorrect input data: signature size must be either 12, 16 or 20"
     | pageN `mod` sigSize /= 0       = die "Error: Incorrect input data: number of pages isn't divisible by signature size"
     | otherwise                      = return ()
 
-{-
- - Output. Self-explanatory.
- -}
+-- Output. Self-explanatory.
 printSignatures :: [(Int, [Int], [Int])] -> IO ()
 printSignatures []                 = return ()
 printSignatures ((n, s1, s2):sigs) = do
@@ -73,9 +67,7 @@ printSignatures ((n, s1, s2):sigs) = do
     putStrLn ""
     printSignatures sigs
 
-{-
- - Main function.
- -}
+-- Main function.
 main :: IO ()
 main = do
     args <- getArgs
